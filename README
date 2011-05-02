@@ -1,0 +1,14 @@
+SPOOL
+=====
+
+A JavaScript library for offline-first web apps.
+
+Aims:
+- to assume the browser is offline by default
+- a drop-in library that allows your existing JS to continue to work (jQuery only? or wrappers?)
+- essentially: DropBox for AJAX
+- when GETing, everything comes from the cache
+- when PUTing, everything is PUt to the cache and that then syncs
+- any changes in the remote data storage are synced to the cache whenever possible
+- if there are conflicts between local data and remote data, we'll handle that in some way (Tony Garnock-Jones' JS diff'ing implementation comes to mind)
+- to be used for a set of data you can list, so it's like a folder, not for all AJAX requests

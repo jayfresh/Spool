@@ -1,0 +1,273 @@
+
+/*--------------------------Global */
+
+body {
+	font-family: "Helvetica Neue", Helvetica, Arial, Sans-serif;
+	letter-spacing: 0.02em;
+	color: #545454;
+	font-size: 62.5%;
+	background-position: 0px 0px;
+}
+
+.grid {
+	background-image: url(../images/24px6inc_grid.png);
+}
+
+.jbasewrap {
+	/*padding: 48px 0;*/
+	width: 950px;
+	margin: auto;
+	font-size: 1.4em;
+	line-height: 1.714em;
+}
+
+a {
+	color: #fca961;
+	text-decoration: underline;
+}
+
+/*--------------------------Grid Modification */
+
+.grid4col, .grid2col {
+	/*margin-top: 0.071em; */
+} 
+
+
+
+
+/*--------------------------Typography */
+
+p {
+	font-size: 1em;
+	margin: 0 0 1.714em;
+}
+
+.smallcaps {
+	font-variant: small-caps;
+}
+
+
+strong {
+	font-weight: bold;
+}
+
+del {
+	text-decoration: line-through;
+}
+
+dfn {
+	font-weight: bold;
+}
+
+em, dfn {
+	font-style: italic;	
+}
+
+address {
+	font-style: italic;
+	margin-bottom: 1.714em;
+}
+
+pre, code, tt {
+	font-family: 'andale mono','lucida console',monospace;
+}
+
+abbr, acronym {
+	border-bottom: 1px dotted;
+}
+
+table {
+	margin-bottom: 1.714em;
+}
+
+th {
+}
+
+ul, ol {
+	margin: 0 0 1.714em 1.714em;
+	
+}
+
+ul li {
+	list-style: disc;
+}
+
+ol li {
+	list-style: decimal;
+}
+
+li ul, li ol {
+	margin: 0 0 0  1.714em;
+} 
+
+dl dt {
+	font-weight: bold;
+}
+
+dd {
+	margin-left: 1.714em;
+}
+
+blockquote {
+	font-style: italic;
+	padding-left: 1.714em;
+}
+
+hr {
+	border: none;
+	height: 0.071em; /* ie. 1 px */
+	color: #858585;
+	background: #858585;
+	/* margin:  0.821em 0; */
+	margin: 0.786em 0; /* 0 0.857em; /* ie. 11 pixels above and 12 below = 24px total */
+}
+
+.small {
+	font-size: 0.75em;
+	line-height: 1.714em;
+	padding-top: 0.4em; /* Made UP! */
+	margin-bottom: 1.886em; /* 2.286 - 0.4em, where 2.286 = 24px when 1em = 10.5px */ 
+	
+}
+
+.large {
+	font-size: 1.5em;
+	line-height: 1.714em;
+	padding-top: 0em; /* Made UP! */
+	margin: -0.25em 0 1.3em; /* Made UP! */
+}
+
+sup {
+	vertical-align: top;
+	font-size: 0.75em;
+}
+sub {
+	vertical-align: bottom;
+	font-size: 0.75em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: normal;
+}
+
+
+h1 {
+	font-size: 2.25em;			/* 31.5px */
+	line-height: 1.333em; 		/* ie. 42px, seven 6px increments */
+	margin-bottom: 0.381em; 	/* ie 12px */
+}
+
+h2 {
+	font-size: 2em;				/* 28px */
+	line-height: 1.286em; 		/* ie 36px */
+	margin-bottom: 0.429em; 	/* 12px */
+}
+
+h3 {
+	font-size: 1.75em;			/* 24.5px */
+	line-height: 1.224em; 		/* ie 30px */
+	margin-bottom: 0.49em; 		/* 12px */
+}
+
+h4 {
+	font-size: 1.5em;			/* 21px */
+	line-height: 1.429em; 		/* ie 30px */
+	margin-bottom: 0.571em; 	/* 12px */
+}
+
+h5 {
+	font-size: 1.25em;			/* 17.5px */
+	line-height: 1.714em; 		/* ie 30px */
+	margin-bottom: 0.686em; 	/* ie 12px */
+}
+
+h6 {
+	font-size: 1em; 			/* 14px */
+	line-height: 1.714em;		/* 24px */
+	margin-bottom: 0.857em; 	/* 12px */
+	font-weight: ; 
+}
+
+
+
+
+
+
+/*--------------------------Colours */
+
+.orange {
+	color: #fbb75f;
+}
+
+
+
+
+/*--------------------------Div Modifiers */
+
+a.trigger {
+	position: fixed;
+	left: 0px;
+	top: 48px;
+	font-family: Helvetica, arial;
+	font-size: 1.05em;
+	padding: 1.2em;
+	background-color: #fff;
+	color: #555;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.box {
+	background-color: #ffeed3;
+	padding: 1.714em;
+	margin-bottom: 1.714em;
+}
+
+.last {
+	margin-bottom: 0;
+}
+
+.margintop {
+	margin-top: 24px;
+}
+.marginbottom {
+	margin-bottom: 24px;
+}
+
+.margintopsmall {
+	margin-top: 12px;
+}
+
+.padtop {
+	padding-top: 24px;
+}
+
+.padtopsmall {
+	padding-top: 12px;
+}
+
+.padbottom {
+	padding-bottom: 24px;
+}
+.padbottomsmall {
+	padding-bottom: 12px;
+}
+
+.rounded5 {
+	-moz-border-radius: 20px; /* FF1+ */
+	-webkit-border-radius: 20px; /* Saf3+, Chrome */
+	border-radius: 20px; /* Opera 10.5, IE 9 */	
+}
+
+.borderbottom {
+	border-bottom: #fbb75f 0.071em solid;
+}
+
+/*--------------------------Forms */
+
+
+/*--------------------------Buttons */
+
+
+/*--------------------------Recaptcha */
+
