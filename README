@@ -22,3 +22,14 @@ Design:
 
 3. update cache for missing resources
 - notify app on retrieval
+
+SPOOL events
+
+All event are triggered on the document.
+
+1. when refreshing cache, "SpoolCacheRefresh"
+2. when cache is updated, "SpoolCacheUpdated"
+
+Demo app
+
+Effectively, a resource editor that sync's with a remote server. Doesn't handle conflicts yet.

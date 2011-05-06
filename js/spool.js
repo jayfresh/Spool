@@ -1,4 +1,7 @@
 /*
+SPOOL
+v0.2
+
 Author: Jonathan Lister (jonathan [at] withjandj [dot] com)
 License: MIT (http://www.opensource.org/licenses/mit-license.php)
 
@@ -79,28 +82,31 @@ function Spool(config) {
 		localMode = false;
 	that.updateCache = function() {
 		// TO-DO: work out how to accommodate requests for changes to the server data since a certain point (which might be specific to each implementation, but a sensible default could use something like eTags or cookies - perhaps it's a capability that could be determined by inspecting a server response
-		console.log('updating cache at '+serverListPath);
-		var list;
+		var list,
+			paths = [];
 		if(serverListPath) {
+			$(document).trigger(that.refreshingCacheEvent);
 			_ajax({
 				url: localMode && serverPath ? serverPath + serverListPath : serverListPath,
 				dataType: 'json',
 				success: function(data) {
 					list = parseList(data);
-					console.log(storage);
 					$.each(list, function(i, item) {
 						if(!storage.get(item.path)) {
-							console.log('saving to '+item.path,item.data);
+							paths.push(item.path);
 							storage.save(item.path,item.data);
 						} else {
 							// for now, don't override
 							// TO-DO: see if the items are the same; if not, do something appropriate
 						}
 					});
+					$(document).trigger(that.updateCacheEvent, [paths]);
 				}
 			});
 		}
 	};
+	that.refreshingCacheEvent = "SpoolCacheRefresh";
+	that.updateCacheEvent = "SpoolCacheUpdated";
 	window.storage = storage; // JRL: debug
 	$.ajax = function(options) {
 		var url = options.url,
