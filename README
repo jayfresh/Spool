@@ -27,8 +27,9 @@ SPOOL events
 
 All event are triggered on the document.
 
-1. when refreshing cache, "SpoolCacheRefresh"
-2. when cache is updated, "SpoolCacheUpdated"
+1. when cache is loaded, "SpoolCacheLoaded"
+2. when refreshing cache, "SpoolCacheRefreshing"
+3. when cache is updated, "SpoolCacheUpdated"
 
 Demo app
 

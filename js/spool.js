@@ -26,12 +26,18 @@ function supports_html5_storage() {
 function Spool(config) {
 	var _ajax = $.ajax,
 		that = this,
-		fallbackStorage = { // in-memory implementation of localStorage for browsers that don't support localStorage
-			key: function(i) {
+		fallbackStorage = {
+			/*
+				in-memory implementation of localStorage for browsers that don't support localStorage
+				not ideal, as length is a function instead of a property - is there something I can do with getters to fix this?
+			*/
+			key: function(i) { // this function assumes that running over an object's property list returns them in the same order they were set - TO-DO: verify whether this is true
+				var count = 0;
 				$.each(this, function(j, item) {
-					if(i===j) {
-						return item;
+					if(i===count) {
+						return j;
 					}
+					i++;
 				});
 			},
 			length: function() {
@@ -52,6 +58,18 @@ function Spool(config) {
 				get: function(path) {
 					var data = storage.storage[path];
 					return JSON.parse(data);
+				},
+				list: function() {
+					var l = storage.storage.length,
+						i = 0,
+						items = [];
+					if(typeof l === "function") {
+						l = l();
+					}
+					for(i; i<l; i++) {
+						items.push(storage.storage.key(i));
+					}
+					return items;
 				}
 			};
 			if(supports_html5_storage) {
@@ -80,17 +98,24 @@ function Spool(config) {
 			}
 		},
 		localMode = false;
+	that.loadCache = function(callback) {
+		var paths = storage.list();
+		console.log(paths);
+		$(document).trigger(that.loadedCacheEvent, [paths]);
+		if(typeof callback==="function") {
+			callback();
+		}
+	};
 	that.updateCache = function() {
 		// TO-DO: work out how to accommodate requests for changes to the server data since a certain point (which might be specific to each implementation, but a sensible default could use something like eTags or cookies - perhaps it's a capability that could be determined by inspecting a server response
-		var list,
-			paths = [];
 		if(serverListPath) {
 			$(document).trigger(that.refreshingCacheEvent);
 			_ajax({
 				url: localMode && serverPath ? serverPath + serverListPath : serverListPath,
 				dataType: 'json',
 				success: function(data) {
-					list = parseList(data);
+					var list = parseList(data),
+						paths = [];
 					$.each(list, function(i, item) {
 						if(!storage.get(item.path)) {
 							paths.push(item.path);
@@ -100,13 +125,14 @@ function Spool(config) {
 							// TO-DO: see if the items are the same; if not, do something appropriate
 						}
 					});
-					$(document).trigger(that.updateCacheEvent, [paths]);
+					$(document).trigger(that.updatedCacheEvent, [paths]);
 				}
 			});
 		}
 	};
-	that.refreshingCacheEvent = "SpoolCacheRefresh";
-	that.updateCacheEvent = "SpoolCacheUpdated";
+	that.loadedCacheEvent = "SpoolCacheLoaded";
+	that.refreshingCacheEvent = "SpoolCacheRefreshing";
+	that.updatedCacheEvent = "SpoolCacheUpdated";
 	window.storage = storage; // JRL: debug
 	$.ajax = function(options) {
 		var url = options.url,
@@ -146,8 +172,8 @@ function Spool(config) {
 			that._ajax.apply(that, arguments);
 		};
 	}
-	// we should update the cache if possible
-	that.updateCache();
+	// load the local cache and then refresh
+	that.loadCache(that.updateCache);
 }
 
 // parseUri 1.2.2

@@ -1,5 +1,5 @@
 a {
-	color: #52bdff;
+	color: #3C28D6;
 }
 
 h2 {
@@ -21,12 +21,10 @@ h2 {
 
 #statusBar {
 	background-color: #fffd7b;
-	line-height: 2em;
-	height: 2em;
-	font-size: 150%;
 	margin-bottom: 1em;
 	padding: 5px;
 	width: 930px;
+	overflow: auto;
 }
 
 #resourceListContainer {
