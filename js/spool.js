@@ -13,16 +13,6 @@ Requires:
 
 var $ = jQuery;
 
-function supports_html5_storage() {
-	try { // to catch bug in older version of Firefox with cookies turned off
-		if('localStorage' in window && window['localStorage'] !== null) {
-			return true;
-		}
-	} catch (e) {
-		return false;
-	}
-}
-
 function Spool(config) {
 	var _ajax = $.ajax,
 		that = this,
@@ -57,7 +47,7 @@ function Spool(config) {
 				},
 				get: function(path) {
 					var data = storage.storage[path];
-					return JSON.parse(data);
+					return data ? JSON.parse(data) : "";
 				},
 				list: function() {
 					var l = storage.storage.length,
@@ -100,7 +90,6 @@ function Spool(config) {
 		localMode = false;
 	that.loadCache = function(callback) {
 		var paths = storage.list();
-		console.log(paths);
 		$(document).trigger(that.loadedCacheEvent, [paths]);
 		if(typeof callback==="function") {
 			callback();
@@ -115,14 +104,31 @@ function Spool(config) {
 				dataType: 'json',
 				success: function(data) {
 					var list = parseList(data),
+						localPath,
+						localData,
+						path,
+						data,
 						paths = [];
 					$.each(list, function(i, item) {
-						if(!storage.get(item.path)) {
-							paths.push(item.path);
-							storage.save(item.path,item.data);
+						path = item.path;
+						data = item.data;
+						localData = storage.get(path);
+						if(!localData) {
+							paths.push(path);
+							storage.save(path,data);
 						} else {
-							// for now, don't override
-							// TO-DO: see if the items are the same; if not, do something appropriate
+							localData = JSON.stringify(localData);
+							if(data!==localData) {
+								// create a conflicted copy of local item - a la DropBox
+								localPath = path+" (conflicted copy "+new Date()+")";
+								paths.push(localPath);
+								storage.save(localPath,localData); // TO-DO: a new resource! This must sync! Or not?? What does DropBox do?
+								paths.push(path);
+								storage.save(path,data);
+							} else {
+								// "don't do anything"
+							}
+							
 						}
 					});
 					$(document).trigger(that.updatedCacheEvent, [paths]);
@@ -136,18 +142,23 @@ function Spool(config) {
 	window.storage = storage; // JRL: debug
 	$.ajax = function(options) {
 		var url = options.url,
+			type = options.type ? options.type.toLowerCase() : "get",
 			path = getPath(url),
 			data = storage.get(path);
-		if(data) {
-			return window.setTimeout(function() {
-				options.success(data); // TO-DO: should I be providing the rest of the arguments here?
-			}, 0);
-		} else {
-			return window.setTimeout(function() {
-				if(options.error) {
-					options.error(null, "error", "Not Found"); // TO-DO: perhaps something different here?
-				}
-			}, 0);
+		if(type==="get") {
+			if(data) {
+				return window.setTimeout(function() {
+					options.success(data); // TO-DO: should I be providing the rest of the arguments here?
+				}, 0);
+			} else {
+				return window.setTimeout(function() {
+					if(options.error) {
+						options.error(null, "error", "Not Found"); // TO-DO: perhaps something different here?
+					}
+				}, 0);
+			}
+		} else { // assume PUT for now
+			// TO-DO: save the thing to local store, send notification to sync'er to start sync'ing
 		}
 	};
 	// we need to setServerListPath
@@ -174,6 +185,16 @@ function Spool(config) {
 	}
 	// load the local cache and then refresh
 	that.loadCache(that.updateCache);
+}
+
+function supports_html5_storage() {
+	try { // to catch bug in older version of Firefox with cookies turned off
+		if('localStorage' in window && window['localStorage'] !== null) {
+			return true;
+		}
+	} catch (e) {
+		return false;
+	}
 }
 
 // parseUri 1.2.2

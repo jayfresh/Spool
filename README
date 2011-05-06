@@ -1,7 +1,7 @@
 SPOOL
 =====
 
-A JavaScript library for offline-first web apps.
+A JavaScript library for offline-first web apps: create "resources that sync".
 
 Aims:
 - to assume the browser is offline by default / that remote resources are inaccessible by default
@@ -23,14 +23,14 @@ Design:
 3. update cache for missing resources
 - notify app on retrieval
 
-SPOOL events
+At the moment, the bits that speak to the web and the bits that talk to storage are pretty linked; I'd quite like them to be separate and communicate via the events
 
+SPOOL events:
 All event are triggered on the document.
 
 1. when cache is loaded, "SpoolCacheLoaded"
 2. when refreshing cache, "SpoolCacheRefreshing"
 3. when cache is updated, "SpoolCacheUpdated"
 
-Demo app
-
+Demo app (index.html):
 Effectively, a resource editor that sync's with a remote server. Doesn't handle conflicts yet.

@@ -7,21 +7,22 @@
 $(document).ready(function() {
 
 	var serverPath = "http://tiddlyweb.peermore.com/wiki",
-		bagPath = "/bags/docs",
+		bagPath = "/recipes/default",
 		spool,
 		$statusBar = $('#statusBar'),
 		updateStatus = function(message) {
 			$statusBar.text(message);
 		},
 		$resourceArea = $('textarea'),
-		updateResourceArea = function(data) {
+		updateResourceArea = function(data,href) {
 			if(typeof data==="object") {
 				data = JSON.stringify(data);
 			}
 			data = js_beautify(data);
 			$resourceArea.val(data);
+			$('button').data('href',href);
 		},
-		updateResourceList = function(paths) {
+		updateResourceList = function(paths, clear) {
 			var listItems = [],
 				pathLabel,
 				stemLength = bagPath.length+1;
@@ -29,12 +30,15 @@ $(document).ready(function() {
 				pathLabel = path.substring(stemLength);
 				listItems.push('<li><a href="'+path+'">'+decodeURIComponent(pathLabel)+'</a></li>');
 			});
-			$('#resourceList').html(listItems.join("\n"));
+			if(clear) {
+				$('#resourceList').html("");
+			}
+			$('#resourceList').append(listItems.join("\n"));
 		};
 	
 	$(document).bind("SpoolCacheLoaded", function(e, paths) {
 		updateStatus("Cache loaded with "+paths.length+" resources");
-		updateResourceList(paths);
+		updateResourceList(paths, true);
 	});
 	
 	$(document).bind("SpoolCacheRefreshing", function() {
@@ -42,7 +46,7 @@ $(document).ready(function() {
 	});
 		
 	$(document).bind('SpoolCacheUpdated', function(e, paths) {
-		updateStatus("Cache updated with "+paths.length+" resources");
+		updateStatus("Cache updated with "+paths.length+" new resources");
 		updateResourceList(paths);
 	});
 
@@ -54,7 +58,7 @@ $(document).ready(function() {
 			url: href,
 			success: function(data) {
 				updateStatus("Loaded resource "+href);
-				updateResourceArea(data);
+				updateResourceArea(data,href);
 			}
 		});
 		return false;
@@ -63,7 +67,8 @@ $(document).ready(function() {
 	$('button').click(function(e) {
 		e.preventDefault();
 		$.ajax({
-			url: $('input[type=text]').val(),
+			url: $(this).data('href'),
+			method: 'PUT',
 			success: function() {
 				console.log('success', arguments);
 			},
