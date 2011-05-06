@@ -30,7 +30,7 @@ All event are triggered on the document.
 
 1. when cache is loaded, "SpoolCacheLoaded"
 2. when refreshing cache, "SpoolCacheRefreshing"
-3. when cache is updated, "SpoolCacheUpdated"
+3. when cache is updated, with local or remote, "SpoolCacheUpdated"
 
 Demo app (index.html):
 Effectively, a resource editor that sync's with a remote server. Doesn't handle conflicts yet.

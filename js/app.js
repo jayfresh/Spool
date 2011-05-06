@@ -7,13 +7,15 @@
 $(document).ready(function() {
 
 	var serverPath = "http://tiddlyweb.peermore.com/wiki",
-		bagPath = "/recipes/default",
 		spool,
 		$statusBar = $('#statusBar'),
 		updateStatus = function(message) {
 			$statusBar.text(message);
 		},
 		$resourceArea = $('textarea'),
+		getResourceArea = function() {
+			return $resourceArea.val();
+		},
 		updateResourceArea = function(data,href) {
 			if(typeof data==="object") {
 				data = JSON.stringify(data);
@@ -23,17 +25,24 @@ $(document).ready(function() {
 			$('button').data('href',href);
 		},
 		updateResourceList = function(paths, clear) {
-			var listItems = [],
-				pathLabel,
-				stemLength = bagPath.length+1;
+			var listItems = [];
 			$.each(paths, function(i, path) {
-				pathLabel = path.substring(stemLength);
-				listItems.push('<li><a href="'+path+'">'+decodeURIComponent(pathLabel)+'</a></li>');
+				listItems.push('<li><a href="'+path+'">'+decodeURIComponent(path)+'</a></li>');
 			});
 			if(clear) {
 				$('#resourceList').html("");
 			}
 			$('#resourceList').append(listItems.join("\n"));
+		},
+		$unsyncedList = $('#unsyncedList'),
+		updateUnsyncedList = function(paths, remove) {
+			$.each(paths, function(i, path) {
+				if(remove) {
+					$unsyncedList.find('a[href='+path+']').remove();
+				} else {
+					$unsyncedList.append('<li><a href="'+path+'">'+decodeURIComponent(path)+'</a></li>');
+				}
+			});
 		};
 	
 	$(document).bind("SpoolCacheLoaded", function(e, paths) {
@@ -48,6 +57,16 @@ $(document).ready(function() {
 	$(document).bind('SpoolCacheUpdated', function(e, paths) {
 		updateStatus("Cache updated with "+paths.length+" new resources");
 		updateResourceList(paths);
+	});
+
+	$(document).bind("SpoolResourceSaved", function(e, paths) { // assuming this is only called with one resource, which it is at the moment
+		updateStatus("Saved "+paths[0]+" to cache");
+		updateUnsyncedList(paths);
+	});
+	
+	$(document).bind("SpoolResourceSynced", function(e, paths) { // assuming this is only called with one resource, which it is at the moment
+		updateStatus("Synced "+paths[0]+" to the web");
+		updateUnsyncedList(paths, true);
 	});
 
 	$('a').live('click', function(e) {
@@ -68,7 +87,9 @@ $(document).ready(function() {
 		e.preventDefault();
 		$.ajax({
 			url: $(this).data('href'),
-			method: 'PUT',
+			type: 'put',
+			data: getResourceArea(),
+			processData: false,
 			success: function() {
 				console.log('success', arguments);
 			},
@@ -81,7 +102,7 @@ $(document).ready(function() {
 	
 	spool = new Spool({
 		serverPath: serverPath,
-		serverListPath: bagPath+"/tiddlers.json?fat=1",
+		serverListPath: "/recipes/default/tiddlers.json?fat=1",
 		parseList: function(tiddlers) {
 			/*
 				to handle an array of tiddlers like this:
@@ -104,7 +125,7 @@ $(document).ready(function() {
 				item;
 			$.each(tiddlers, function(i, tiddler) {
 				item = {
-					path: bagPath+"/"+encodeURIComponent(tiddler.title),
+					path: "/bags/"+tiddler.bag+"/tiddlers/"+encodeURIComponent(tiddler.title),
 					data: JSON.stringify(tiddler)
 				};
 				list.push(item);

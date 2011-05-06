@@ -139,6 +139,8 @@ function Spool(config) {
 	that.loadedCacheEvent = "SpoolCacheLoaded";
 	that.refreshingCacheEvent = "SpoolCacheRefreshing";
 	that.updatedCacheEvent = "SpoolCacheUpdated";
+	that.savedResourceEvent = "SpoolResourceSaved";
+	that.syncedResourceEvent = "SpoolResourceSynced";
 	window.storage = storage; // JRL: debug
 	$.ajax = function(options) {
 		var url = options.url,
@@ -149,16 +151,22 @@ function Spool(config) {
 			if(data) {
 				return window.setTimeout(function() {
 					options.success(data); // TO-DO: should I be providing the rest of the arguments here?
+					// TO-DO: this is probably where I should notify the bit that speaks to the internet, so it can check for updates
 				}, 0);
 			} else {
 				return window.setTimeout(function() {
 					if(options.error) {
 						options.error(null, "error", "Not Found"); // TO-DO: perhaps something different here?
+						// TO-DO: this is probably where I should notify the bit that speaks to the internet, so it can go look for the resource
 					}
 				}, 0);
 			}
-		} else { // assume PUT for now
-			// TO-DO: save the thing to local store, send notification to sync'er to start sync'ing
+		} else { // assume PUT for now, since it is unlikely to return something - right??
+			storage.save(path, options.data || "");
+			$(document).trigger(that.savedResourceEvent, [[path]]);
+			return window.setTimeout(function() {
+				options.success();
+			}, 0);
 		}
 	};
 	// we need to setServerListPath
@@ -183,6 +191,26 @@ function Spool(config) {
 			that._ajax.apply(that, arguments);
 		};
 	}
+	
+	$(document).bind(that.savedResourceEvent, function(e, paths) {
+		$.each(paths, function(i, path) {
+			// TO-DO: need to support any options passed along, particularly processData, as it's not working without that
+			_ajax({
+				url: path,
+				type: 'put',
+				contentType: 'application/json',
+				data: storage.get(path),
+				success: function() {
+					$(document).trigger(that.syncedResourceEvent, [[path]]);
+				},
+				error: function() {
+					// TO-DO: figure out what to do if save is failed
+					console.log('failed to sync on save', arguments);
+				}
+			});
+		});
+	});
+
 	// load the local cache and then refresh
 	that.loadCache(that.updateCache);
 }
