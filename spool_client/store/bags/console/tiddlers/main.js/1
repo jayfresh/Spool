@@ -1,0 +1,268 @@
+modifier: None
+created: 
+modified: 20110506144740
+type: text/javascript
+tags: 
+
+(function($) {
+
+var tw = new TiddlyWeb();
+
+$.TiddlyRecon = function(root, host) {
+	tw.host = host; // XXX: hacky; should happen at instantiation!?
+	$.TiddlyRecon.root = $(root).empty(); // TODO: TiddlyRecon should be a constructor
+	notify("loading status");
+	loadStatus($.TiddlyRecon.root);
+	notify("loading recipes");
+	tw.loadRecipes(function(data, status, error) {
+		populateRecipes($.TiddlyRecon.root, data, status, error);
+	});
+};
+
+// display status
+var loadStatus = function(container) {
+	var placeholder = $('<div />').appendTo(container); // required to avoid race condition
+	var callback = function(data, status, error) {
+		var ctx = {
+			host: tw.host,
+			username: data.username
+		};
+		$("#template_status").template(ctx).replaceAll(placeholder);
+	};
+	tw.loadData("/status", callback);
+};
+
+// list recipes
+var populateRecipes = function(container, data, status, error) {
+	notify("populating recipes");
+	data.splice(0, 0, "(none)");
+	listCollection(data, { title: "Recipes" }).
+		find("li:first").addClass("virtual").end().
+		find("a").click(loadRecipe).end().
+		appendTo(container);
+};
+
+// display recipe
+var loadRecipe = function(ev) {
+	var recipe_node = $(this);
+	setActive(recipe_node);
+	var recipe_name = $.trim(recipe_node.text());
+	recipe_name = recipe_name == "(none)" ? null : recipe_name; // XXX: hacky?
+	notify("loading recipe", recipe_name);
+
+	var recipe_container = renderEntity("recipe", recipe_name || "", recipe_node);
+
+	var callback = function(data, status, error) {
+		populateBags(recipe_container, data, status, error);
+	};
+	if(recipe_name) {
+		tw.loadRecipe(recipe_name, callback);
+	} else {
+		var _callback = function(data, status, error) {
+			var recipe = $.map(data, function(item, i) {
+				return [[item, ""]]; // nested array prevents flattening
+			});
+			data = { recipe: recipe };
+			callback.apply(this, arguments);
+		};
+		tw.loadBags(_callback);
+	}
+	return false;
+};
+
+// list bags in recipe
+var populateBags = function(container, data, status, error) {
+	notify("populating bags");
+	data.recipe.splice(0, 0, ["(all)", ""]);
+	var options = {
+		title: "Bags",
+		sortAttr: 0,
+		callback: function(i, el, items) {
+			$(el).find("a").data("filter", items[i][1]).click(loadBag);
+		}
+	};
+	listCollection(data.recipe, options).
+		find("li:first").addClass("virtual").end().
+		find("a").click(loadBag).end().
+		data("recipe", data.recipe).
+		appendTo(container);
+};
+
+// display bag
+var loadBag = function(ev) {
+	var bag_node = $(this);
+	setActive(bag_node);
+	var bag_name = $.trim(bag_node.text());
+	bag_name = bag_name == "(all)" ? null : bag_name; // XXX: hacky?
+	notify("loading bag", bag_name);
+
+	var bag_container = renderEntity("bag", bag_name || "", bag_node);
+
+	var callback = function(data, status, error) {
+		populateTiddlers(bag_container, data, status, error);
+	};
+	if(bag_name) {
+		var container = {
+			type: "bag",
+			name: bag_name
+		};
+		tw.loadTiddlers(container, null, callback);
+	} else {
+		var recipe = bag_node.closest(".collection").data("recipe");
+		recipe = $.map(recipe, function(item, i) { // clone array to prevent data corruption
+			// ignore dummy item -- XXX: hacky?
+			return item[0] == "(all)" ? null : [item]; // nested array to prevent flattening
+		});
+		// TODO: refactor aggregation queue into separation function
+		var counter = recipe.length;
+		var index = {};
+		var aggregate = function(data, status, error) {
+			for(var i = 0; i < data.length; i++) {
+				var tiddler = data[i];
+				if(!index[tiddler.title]) {
+					index[tiddler.title] = [];
+				}
+				index[tiddler.title].push(tiddler);
+			}
+			if(--counter == 0) {
+				var tiddlers = resolveCascade(index);
+				callback(tiddlers, status, error);
+			}
+		};
+		$.each(recipe, function(i, item) {
+			var bag_name = item[0];
+			var filter = item[1];
+			var container = {
+				type: "bag",
+				name: bag_name
+			};
+			tw.loadTiddlers(container, filter, aggregate);
+		});
+	}
+	return false;
+};
+
+var populateTiddlers = function(container, data, status, error) {
+	notify("populating tiddlers");
+	var options = {
+		title: "Tiddlers",
+		sortAttr: "title",
+		callback: function(i, el, items) {
+			var item = items[i];
+			$(el).find("a").addClass(item.cascade).data("bag", item.bag);
+		}
+	};
+	listCollection(data, options).
+		find("a").click(loadTiddler).end().
+		appendTo(container);
+};
+
+var loadTiddler = function(ev) {
+	var tiddler_node = $(this);
+	setActive(tiddler_node);
+	var title = $.trim(tiddler_node.text());
+	var bag = tiddler_node.data("bag");
+	notify("loading tiddler", title, bag);
+
+	var tiddler_container = renderEntity("tiddler", title, tiddler_node);
+
+	var callback = function(data, status, error) {
+		populateTiddler(tiddler_container, data, status, error);
+	};
+	var container = {
+		type: "bag",
+		name: bag
+	};
+	tw.loadTiddler(title, container, callback);
+	return false;
+};
+
+var populateTiddler = function(container, data, status, error) {
+	notify("populating tiddler");
+
+	$('<div class="content" />').text(data.text).appendTo(container); // XXX: request wikified text!?
+};
+
+// utility functions
+
+// creates an entity (bag or recipe)
+var renderEntity = function(type, name, container) {
+	var entity = $("#template_entity").
+		template({ name: name }).attr("id", type);
+	return container.closest("div").
+		find("#" + type).remove().end(). // clear existing selection -- TODO: allow for multiple entities?
+		attach(entity);
+};
+
+// creates a list of collection items
+// items is the collection's data array
+// options.title is used as heading and also as element ID (lowercased)
+// options.sortAttr is the attribute by which items are to be sorted
+// options.callback is a function applied to each item's DOM element
+var listCollection = function(data, options) {
+	var sortAttr = options.sortAttr !== undefined ? options.sortAttr : null;
+	data = data.sort(function(a, b) {
+		var x = sortAttr !== null ? a[sortAttr].toLowerCase() : a.toLowerCase();
+		var y = sortAttr !== null ? b[sortAttr].toLowerCase() : b.toLowerCase();
+		return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+	}); // XXX: does not take into account special items ("(none)", "(all)")
+	if(sortAttr !== null) {
+		var items = $.map(data, function(item, i) { return item[sortAttr]; });
+	} else {
+		items = data;
+	}
+
+	var ctx = {
+		id: options.title.toLowerCase() || "", // XXX: title inappropriate?
+		title: options.title || "",
+		items: items
+	};
+	var container = $("#template_collection").template(ctx);
+	if(options.callback) { // XXX: not really a callback
+		container.find("li").each(function(i, el) {
+			options.callback(i, el, data);
+		});
+	}
+	return container;
+};
+
+var setActive = function(node) {
+	node.parent().
+		siblings().removeClass("active").end().
+		parent().find(".indicator").remove().end().end().
+		find("a").append('<span class="indicator">').end().
+		addClass("active");
+};
+
+// translates a collection of tiddlers into an array, flagging duplicates
+// index is an object listing tiddlers by title
+// duplicate tiddlers are assigned a cascade property "primary" or "secondary",
+// depending on their precendence in the cascade
+var resolveCascade = function(index) {
+	var tiddlers = [];
+	for(var key in index) {
+		var list = index[key];
+		if(list.length == 1) {
+			tiddlers.push(list[0]);
+		} else {
+			var tiddler = list.pop();
+			tiddler.cascade = "primary";
+			tiddlers.push(tiddler);
+			for(var i = 0; i < list.length; i++) {
+				tiddler = list[i];
+				tiddler.cascade = "secondary";
+				tiddlers.push(tiddler);
+			}
+		}
+	}
+	return tiddlers;
+};
+
+var notify = function(msg) { // TODO: use jQuery.notify
+	// XXX: DEBUG
+	if(window.console && console.log) {
+		console.log("notify:", msg);
+	}
+};
+
+})(jQuery);

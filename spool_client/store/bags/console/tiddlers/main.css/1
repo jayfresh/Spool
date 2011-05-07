@@ -1,0 +1,170 @@
+modifier: None
+created: 
+modified: 20110506144740
+type: text/css
+tags: 
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html,
+body {
+	background-color: #FFF;
+}
+
+/* structure */
+
+#explorer {
+	width: 90%;
+	margin: 10px auto;
+	border: 1px solid #000;
+	background-color: #FFF;
+}
+
+#status {
+	border-bottom: 1px solid #000;
+	padding: 2px 5px;
+}
+
+#status dt,
+#status dd {
+	display: inline;
+}
+
+.collection,
+.entity,
+.content {
+	min-height: 200px; /* XXX: not cross-browser compatible */
+	border: 1px solid #000;
+	border-width: 1px 0 0 1px;
+}
+
+.collection {
+	overflow: auto; /* contain floats */
+	background-color: #E4E4E4;
+}
+
+.collection h2 {
+	margin: 5px; /* XXX: use padding on container instead!? */
+}
+
+.entity {
+	position: relative; /* common stacking context with floated collection items */
+	z-index: 20;
+	overflow: auto; /* contain surrounding floats -- XXX: not cross-browser compatible? */
+	padding-left: 15px; /* gutter */
+	background-color: #FFF;
+}
+
+.entity h3 {
+	margin: 5px;
+	margin-left: -10px; /* neutralize gutter */
+}
+
+#recipes {
+	margin: -1px 0 0 -1px; /* collapse double margins */
+}
+
+#tiddler {
+	border-bottom-width: 1px;
+}
+
+#tiddler .content {
+	padding: 5px;
+	overflow: auto;
+	white-space: pre; /* XXX: should be pre-wrap? -- XXX: temporary workaround (until wikified)? */
+	font-family: monospace;
+}
+
+.listing {
+	float: left;
+	max-width: 50%; /* XXX: not cross-browser compatible */
+	margin: 1px -1px 10px 10px; /* top margin compensates for children's' negative margin */
+	list-style-type: none;
+}
+
+.listing a {
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	margin-top: -1px; /* collapse double margins */
+	border: 1px solid #000;
+	padding: 1px 5px;
+	text-decoration: none;
+	color: #000;
+	background-color: #FFF;
+}
+
+.listing a:hover,
+.listing .active a {
+	position: relative; /* common stacking context with entities */
+	z-index: 30;
+	outline: none; /* suppresses active/focus state borders */
+}
+
+.listing .active a {
+	position: relative; /* required for child's abspos */
+	border-right: none;
+}
+
+.listing .active .indicator {
+	position: absolute;
+	right: 0;
+	width: 0;
+	height: 0;
+	border-width: 0.5em 0 0.5em 0.5em; /* XXX: inaccurate; does not scale!? */
+	border-style: solid;
+	border-color: transparent transparent transparent #FFF;
+}
+
+/* formatting */
+
+#status dt {
+	font-weight: normal;
+}
+
+#status dd {
+	font-weight: bold;
+}
+
+#status a {
+	text-decoration: none;
+	color: #000;
+}
+
+#recipe,
+#recipes .listing a:hover,
+#recipes .active a {
+	background-color: #B7CAEB;
+}
+
+#bag,
+#bags .listing a:hover,
+#bags .active a {
+	background-color: #EEC6E6; /* XXX: dark version: #B99AB3 */
+}
+
+#tiddler,
+#tiddlers .listing a:hover,
+#tiddlers .active a {
+	background-color: #F4E8B1; /* XXX: dark version: D1C696 */
+}
+
+#tiddlers .primary {
+	font-weight: bold;
+}
+
+#tiddlers .secondary {
+	text-decoration: line-through;
+}
+
+#tiddler .content {
+	background-color: #FFF;
+}
+
+.virtual,
+.active {
+	font-style: italic;
+}

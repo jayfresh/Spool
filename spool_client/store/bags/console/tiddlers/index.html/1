@@ -1,0 +1,74 @@
+modifier: None
+created: 
+modified: 20110506144740
+type: text/html
+tags: 
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>TiddlyRecon</title>
+	<link rel="stylesheet" type="text/css" href="styles/main.css">
+</head>
+
+<body>
+	<div id="explorer">
+		<i>loading...</i>
+	</div>
+
+	<!-- templates -->
+
+	<script type="text/html" id="template_status">
+		<dl id="status">
+			<dt>user</dt>
+			<dd> <%= username %> </dd>
+			<dt>server</dt>
+			<dd>
+				<a href="<%= host %>">
+					<%= host %>
+				</a>
+			</dd>
+		</dl>
+	</script>
+
+	<script type="text/html" id="template_entity">
+		<div class="entity">
+			<h3> <%= name %> </h3>
+		</div>
+	</script>
+
+	<script type="text/html" id="template_collection">
+		<div id="<%= id %>" class="collection">
+			<h2> <%= title %> </h2>
+			<ul class="listing">
+				<% for(var i = 0; i < items.length; i++) { %>
+				<li>
+					<a href="#"> <%= items[i] %> </a>
+				</li>
+				<% } %>
+			</ul>
+
+		</div>
+	</script>
+
+	<!-- functionality -->
+
+	<script src="scripts/jquery.min.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		jQuery.noConflict();
+	</script>
+	<script src="scripts/jquery-json.min.js" type="text/javascript"></script>
+	<script src="scripts/chrjs.js" type="text/javascript"></script>
+	<script src="scripts/main.js" type="text/javascript"></script>
+	<script src="scripts/util.js" type="text/javascript"></script>
+	<script src="scripts/config.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		jQuery(function() {
+			jQuery.TiddlyRecon("#explorer", TiddlyWeb.host);
+		});
+	</script>
+</body>
+
+</html>

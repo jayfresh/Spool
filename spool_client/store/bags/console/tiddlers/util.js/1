@@ -1,0 +1,46 @@
+modifier: None
+created: 
+modified: 20110506144740
+type: text/javascript
+tags: 
+
+(function($) {
+
+// creates and then select elements
+// useful in combination with jQuery's end method for dynamically generating
+// nested elements within a chain of operations
+$.fn.attach = function(html) {
+	return this.append(html).children(":last");
+};
+
+// appends multiple elements generated from data array
+// generator function is invoked for each item; it is passed item and index as
+// arguments and must return jQuery object
+$.fn.multipend = function(items, generator) { // TODO: rename
+	return this.append($.map(items, function(item, i) {
+		return generator.apply(this, arguments)[0];
+	}));
+};
+
+// templating using "<% ... %>" (expressions) and "<%= ... %>" (values)
+// adapted from John Resig and Jeremy Ashkenas (MIT License)
+// http://ejohn.org/blog/javascript-micro-templating/
+// http://github.com/documentcloud/underscore
+$.fn.template = function(data) {
+	var str = this.text();
+	var fn = new Function("obj",
+		"var p=[];" +
+		"with(obj){p.push(\'" +
+		str
+			.replace(/[\r\t\n]/g, " ")
+			.split("<%").join("\t")
+			.replace(/((^|%>)[^\t]*)'/g, "$1\r")
+			.replace(/\t=(.*?)%>/g, "',$1,'")
+			.split("\t").join("');")
+			.split("%>").join("p.push('")
+			.split("\r").join("\\'") +
+		"');}return jQuery(p.join(''));");
+	return data ? fn(data) : fn;
+};
+
+})(jQuery);

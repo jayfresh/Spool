@@ -1,0 +1,5 @@
+desc: standard TiddlyWebWiki environment
+policy: {"read": [], "create": [], "manage": ["R:ADMIN"], "accept": [], "write": ["R:ADMIN"], "owner": "administrator", "delete": ["R:ADMIN"]}
+
+/bags/system/tiddlers
+/bags/common/tiddlers

@@ -1,0 +1,87 @@
+a {
+	color: #3C28D6;
+}
+
+h2 {
+	height: 50px;
+	margin-bottom: 0;
+}
+
+h3 {
+	font-size: 1.25em;
+	padding-left: 10px;
+}
+
+textarea {
+	border: none;
+	padding: 5px;
+	width: 610px;
+	min-height: 340px;
+	-webkit-box-shadow: inset 0px 0px 2px #000000;
+	-moz-box-shadow: inset 0px 0px 2px #000000;
+	box-shadow: inset 0px 0px 2px #000000;
+	margin-bottom: 10px;
+}
+
+button {
+	border: 1px solid #000;
+	background-color: #FFF;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #CCC;
+}
+
+.fullwidth {
+	width: 100%;
+}
+
+.clearboth {
+	clear: both;
+}
+
+.footer {
+	padding-top: 1em;
+}
+
+#statusBar {
+	background-color: #fffd7b;
+	margin-bottom: 1em;
+	padding: 5px;
+	width: 930px;
+	overflow: auto;
+}
+
+#unsyncedListContainer {
+	background-color: #FFFD7B;
+	overflow: hidden;
+}
+
+#unsyncedListContainer p {
+	margin: 0;
+	padding-left: 10px;
+}
+
+#unsyncedList, #resourceList {
+	margin: 0;
+	padding-left: 20px;
+}
+
+#resourceListContainer {
+	height: 300px;
+	margin-top: 1em;
+	overflow-y: auto;
+}
+
+#resourceList {
+	min-height: 300px;
+	background: #DDEEFF; /* Old browsers */
+	background: -moz-linear-gradient(top, #DDEEFF 0%, #C5D5DD 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#DDEEFF), color-stop(100%,#C5D5DD)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #DDEEFF 0%,#C5D5DD 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #DDEEFF 0%,#C5D5DD 100%); /* Opera11.10+ */
+	background: -ms-linear-gradient(top, #DDEEFF 0%,#C5D5DD 100%); /* IE10+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#DDEEFF', endColorstr='#C5D5DD',GradientType=0 ); /* IE6-9 */
+	background: linear-gradient(top, #DDEEFF 0%,#C5D5DD 100%); /* W3C */
+}
