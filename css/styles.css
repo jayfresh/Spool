@@ -55,8 +55,12 @@ button:hover {
 
 #unsyncedListContainer {
 	background-color: #FFFD7B;
-	display: none;
-	margin-bottom: 1em;
+	overflow: hidden;
+}
+
+#unsyncedListContainer p {
+	margin: 0;
+	padding-left: 10px;
 }
 
 #unsyncedList, #resourceList {
@@ -66,6 +70,7 @@ button:hover {
 
 #resourceListContainer {
 	height: 300px;
+	margin-top: 1em;
 	overflow-y: auto;
 }
 

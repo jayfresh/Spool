@@ -9,6 +9,10 @@ Requires:
 - jQuery - jquery.com (written with 1.4.1)
 - json2.js - https://github.com/douglascrockford/JSON-js
 
+TO-DO:
+- add syncFailed event
+- store a list of the unsynced resoures in local storage somehow
+
 */
 
 var $ = jQuery;
@@ -83,8 +87,20 @@ function Spool(config) {
 			return data; // when init'ing, override this with implementation-specific mapping function
 		},
 		setParseList = function(handler) {
-			if(handler) {
+			if(typeof handler==="function") {
 				parseList = handler;
+			}
+		},
+		compareItems = function(local, remote) { // can be overridden in setup
+			if(local===remote) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		setCompareItems = function(handler) {
+			if(typeof handler==="function") {
+				compareItems = handler;
 			}
 		},
 		localMode = false;
@@ -114,11 +130,13 @@ function Spool(config) {
 						data = item.data;
 						localData = storage.get(path);
 						if(!localData) {
+							console.log('could not find local for '+path);
 							paths.push(path);
 							storage.save(path,data);
 						} else {
 							localData = JSON.stringify(localData);
-							if(data!==localData) {
+							if(!compareItems(localData,data)) {
+								console.log('local is different to remote for '+path);
 								// create a conflicted copy of local item - a la DropBox
 								localPath = path+" (conflicted copy "+new Date()+")";
 								paths.push(localPath);
@@ -163,7 +181,7 @@ function Spool(config) {
 			}
 		} else { // assume PUT for now, since it is unlikely to return something - right??
 			storage.save(path, options.data || "");
-			$(document).trigger(that.savedResourceEvent, [[path]]);
+			$(document).trigger(that.savedResourceEvent, [[path], options]);
 			return window.setTimeout(function() {
 				options.success();
 			}, 0);
@@ -176,6 +194,9 @@ function Spool(config) {
 	// we should set the parseList function to something appropriate to this implementation
 	if(config.parseList) {
 		setParseList(config.parseList);
+	}
+	if(config.compareItems) {
+		setCompareItems(config.compareItems);
 	}
 	// enable cross-domain AJAX if we're on a file URI (Mozilla only)
 	if(window.location.protocol.indexOf('file')!==-1) {
@@ -192,22 +213,30 @@ function Spool(config) {
 		};
 	}
 	
-	$(document).bind(that.savedResourceEvent, function(e, paths) {
+	$(document).bind(that.savedResourceEvent, function(e, paths, options) {
+		var syncFail = function() {
+			console.log('failed to sync on save', arguments);
+		};
 		$.each(paths, function(i, path) {
-			// TO-DO: need to support any options passed along, particularly processData, as it's not working without that
-			_ajax({
+			console.log('syncing '+path);
+			$.extend(options, {
 				url: path,
 				type: 'put',
 				contentType: 'application/json',
-				data: storage.get(path),
-				success: function() {
-					$(document).trigger(that.syncedResourceEvent, [[path]]);
+				success: function(data, status, xhr) {
+					var statuses = [204];
+					if(xhr && $.inArray(xhr.status, statuses)!==-1) {
+						console.log('successful sync',arguments);
+						$(document).trigger(that.syncedResourceEvent, [[path]]);
+					} else {
+						syncFail.apply(this,arguments);
+					}
 				},
 				error: function() {
-					// TO-DO: figure out what to do if save is failed
-					console.log('failed to sync on save', arguments);
+					syncFail.apply(this,arguments);
 				}
 			});
+			_ajax(options);
 		});
 	});
 

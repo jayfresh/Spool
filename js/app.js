@@ -2,6 +2,9 @@
 	requires:
 		json2.js - https://github.com/douglascrockford/JSON-js
 		beautify.js - https://github.com/einars/js-beautify/blob/master/beautify.js
+		
+	TO-DO:
+	- make the textarea a tiddler editor
 */
 
 $(document).ready(function() {
@@ -34,16 +37,44 @@ $(document).ready(function() {
 			}
 			$('#resourceList').append(listItems.join("\n"));
 		},
+		$unsyncedListContainer = $('#unsyncedListContainer'),
 		$unsyncedList = $('#unsyncedList'),
 		updateUnsyncedList = function(paths, remove) {
+			var startingItems = $unsyncedList.find('li').length,
+				endingItems;
 			$.each(paths, function(i, path) {
 				if(remove) {
-					$unsyncedList.find('a[href='+path+']').remove();
+					$unsyncedList.find('a[href='+path+']').closest('li').remove();
 				} else {
 					$unsyncedList.append('<li><a href="'+path+'">'+decodeURIComponent(path)+'</a></li>');
 				}
 			});
+			endingItems = $unsyncedList.find('li').length;
+			if(endingItems===0) {
+				$unsyncedListContainer.find('p').show();
+			} else {
+				if(startingItems===0) {
+					$unsyncedListContainer.find('p').hide();
+				}
+			}
+		},
+		compare = function(obj1, obj2) {
+			var equal = true;
+			if(typeof obj1==="object") {			
+				$.each(obj1, function(key, value) {
+					if(!obj2[key] || obj2[key]!==value) {
+						equal = false;
+						return false;
+					}
+				});
+			} else if(obj1!==obj2) {
+				equal = false;
+			}
+			return equal;
 		};
+		
+	// clear the textarea in case it has remembered some text
+	$('textarea').val('');
 	
 	$(document).bind("SpoolCacheLoaded", function(e, paths) {
 		updateStatus("Cache loaded with "+paths.length+" resources");
@@ -84,6 +115,10 @@ $(document).ready(function() {
 	});
 
 	$('button').click(function(e) {
+		var url = $(this).data('href');
+		if(!url) {
+			return;
+		}
 		e.preventDefault();
 		$.ajax({
 			url: $(this).data('href'),
@@ -131,6 +166,28 @@ $(document).ready(function() {
 				list.push(item);
 			});
 			return list;
+		},
+		compareItems: function(local, remote) {
+			var localTiddler = JSON.parse(local),
+				remoteTiddler = JSON.parse(remote),
+				matchFields = [
+					'title',
+					'text',
+					'tags',
+					'fields',
+					'creator',
+					'modifier',
+					'bag',
+					'type'
+				],
+				equal = true;
+			$.each(matchFields, function(i, field) {
+				if(!compare(localTiddler[field],remoteTiddler[field])) {
+					equal = false;
+					return false;
+				}
+			});
+			return equal;
 		}
 	});
 
