@@ -23,7 +23,14 @@ Design:
 3. update cache for missing resources
 - notify app on retrieval
 
-At the moment, the bits that speak to the web and the bits that talk to storage are pretty linked; I'd quite like them to be separate and communicate via the events
+At the moment, the bits that speak to the web and the bits that talk to storage are pretty linked; I'd quite like them to be separate and communicate via the events.
+
+Changes in behaviour when using Spool:
+Spool replaces jQuery.ajax to provide these changes in behaviour:
+- GET: returns a 404 if the resource is not in the cache
+- POST: NO CHANGE (apps rely too frequently on POST having a particular effect)
+- PUT: returns 204 and saves the resource to the cache, which triggers a "SpoolResourceSaved" event; Spool tries to sync the resource
+- DELETE: not supported yet - it will behave the same as PUT
 
 SPOOL events:
 All event are triggered on the document.
