@@ -1,1 +1,3 @@
 spool_client/store/bags/common/tiddlers/*
+*.pyc
+tiddlyweb.log
