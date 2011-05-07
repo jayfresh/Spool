@@ -31,6 +31,10 @@ All event are triggered on the document.
 1. when cache is loaded, "SpoolCacheLoaded"
 2. when refreshing cache, "SpoolCacheRefreshing"
 3. when cache is updated, with local or remote, "SpoolCacheUpdated"
+4. when a resource is saved to the local storage, "SpoolResourceSaved"
+5. when a resource is synced to the remote storage, "SpoolResourceSynced"
 
-Demo app (index.html):
-Effectively, a resource editor that sync's with a remote server. Doesn't handle conflicts yet.
+Demo app (spool_client/static/index.html):
+Effectively, a resource editor that sync's with a remote server.
+
+This spool_client folder contains the files you need to run the example, which expects to run on TiddlyWeb (http://tiddlyweb.com). The demo will work fine from a file URI, although writing requires you to point it at a server you can modify.
