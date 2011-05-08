@@ -4,7 +4,9 @@
 		beautify.js - https://github.com/einars/js-beautify/blob/master/beautify.js
 	
 	BUG:
-	- load up the editor so the storage is filled; refresh - all sorts of things go wrong when comparing content
+	- load up the editor so the storage is filled; refresh - all sorts of things go wrong when comparing content:
+	-- "saving data <undefined>"
+	-- new resources created without the "conflicted copy" marker - when they shouldn't be created at all
 	
 	TO-DO:
 	- make the textarea a tiddler editor
