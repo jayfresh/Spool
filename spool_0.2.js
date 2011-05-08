@@ -9,9 +9,11 @@ Requires:
 - jQuery - jquery.com (written with 1.4.1)
 - json2.js - https://github.com/douglascrockford/JSON-js
 
+BUG:
+- expressed in the example app.js
+
 TO-DO:
 - add syncFailed event
-- store a list of the unsynced resoures in local storage somehow
 
 */
 
@@ -24,6 +26,7 @@ function Spool(config) {
 			/*
 				in-memory implementation of localStorage for browsers that don't support localStorage
 				not ideal, as length is a function instead of a property - is there something I can do with getters to fix this?
+				- actually, I can sort this by using getItem and setItem instead of square-bracket syntax
 			*/
 			key: function(i) { // this function assumes that running over an object's property list returns them in the same order they were set - TO-DO: verify whether this is true
 				var count = 0;
@@ -46,12 +49,24 @@ function Spool(config) {
 		},
 		getStorage = function() {
 			var storage = {
-				save: function(path, item) {
-					storage.storage[path] = item;
+				save: function(path, data) {
+					// TO-DO: handle exception when storage is exceeded
+					console.log('saving data',data);
+					var item = {
+						data: data,
+						meta: {
+							unsynced: true
+						}
+					};
+					storage.storage[path] = JSON.stringify(item);
 				},
 				get: function(path) {
-					var data = storage.storage[path];
-					return data ? JSON.parse(data) : "";
+					var item = storage.getRawItem(path),
+						data;
+					if(item) {
+						data = item.data;
+						return data || "";
+					}
 				},
 				list: function() {
 					var l = storage.storage.length,
@@ -64,6 +79,25 @@ function Spool(config) {
 						items.push(storage.storage.key(i));
 					}
 					return items;
+				},
+				getRawItem: function(path) {
+					var item = storage.storage[path];
+					if(item) {
+						return JSON.parse(item);
+					}
+				},
+				isUnsynced: function(path) {
+					var item = storage.getRawItem(path);
+					if(item) {
+						return item.meta.unsynced;
+					}
+				},
+				markSynced: function(path) {
+					var item = storage.getRawItem(path);
+					if(item) {
+						item.meta.unsynced = false;
+						storage.storage[path] = JSON.stringify(item);
+					}
 				}
 			};
 			if(supports_html5_storage) {
@@ -91,16 +125,24 @@ function Spool(config) {
 				parseList = handler;
 			}
 		},
-		compareItems = function(local, remote) { // can be overridden in setup
-			if(local===remote) {
+		isNewer = function(local, remote) { // can be overridden when init'ing
+			return false; // assume remote is newer by default
+		},
+		setIsNewer = function(handler) {
+			if(typeof handler==="function") {
+				isNewer = handler;
+			}
+		}
+		compareContent = function(local, remote) { // can be overridden when init'ing
+			if(Spool.objCompare(local,remote)) {
 				return true;
 			} else {
 				return false;
 			}
 		},
-		setCompareItems = function(handler) {
+		setCompareContent = function(handler) {
 			if(typeof handler==="function") {
-				compareItems = handler;
+				compareContent = handler;
 			}
 		},
 		localMode = false;
@@ -134,17 +176,31 @@ function Spool(config) {
 							paths.push(path);
 							storage.save(path,data);
 						} else {
-							localData = JSON.stringify(localData);
-							if(!compareItems(localData,data)) {
-								console.log('local is different to remote for '+path);
-								// create a conflicted copy of local item - a la DropBox
-								localPath = path+" (conflicted copy "+new Date()+")";
-								paths.push(localPath);
-								storage.save(localPath,localData); // TO-DO: a new resource! This must sync! Or not?? What does DropBox do?
-								paths.push(path);
-								storage.save(path,data);
+							if(isNewer(localData,data)) {
+								// if the local content is different, that means it hasn't synced
+								// check that this local resource is unsynced; if it isn't, throw an error since it should be; if it is, prompt a sync?
+								if(storage.isUnsynced(path)) {
+									// ok, do nothing
+									// TO-DO: or should I prompt a sync?
+								} else {
+									throw new Error("local resource is newer than remote resource, but is not unsynced - something has gone wrong",path);
+								}
 							} else {
-								// "don't do anything"
+								// if the local content is the same, replace with newer remote resource
+								// if not, check if it is synced - if it is, it is safe to overwrite; if not, create a local conflicted copy (as does DropBox)
+								// TO-DO: what do I do with the new resource? sync it?
+								if(compareContent(localData,data)) {
+									paths.push(path);
+									storage.save(path.data);
+								} else {
+									if(storage.isUnsynced(path)) {
+										localPath = path+" (conflicted copy "+new Date()+")";
+										paths.push(localPath);
+										storage.save(localPath,localData);
+									}									
+									paths.push(path);
+									storage.save(path,data);
+								}
 							}
 							
 						}
@@ -195,8 +251,11 @@ function Spool(config) {
 	if(config.parseList) {
 		setParseList(config.parseList);
 	}
-	if(config.compareItems) {
-		setCompareItems(config.compareItems);
+	if(config.isNewer) {
+		setIsNewer(config.isNewer);
+	}
+	if(config.compareContent) {
+		setCompareContent(config.compareContent);
 	}
 	// enable cross-domain AJAX if we're on a file URI (Mozilla only)
 	if(window.location.protocol.indexOf('file')!==-1) {
@@ -239,10 +298,31 @@ function Spool(config) {
 			_ajax(options);
 		});
 	});
+	
+	$(document).bind(that.syncedResourceEvent, function(e, paths) {
+		$.each(paths, function(i, path) {
+			storage.markSynced(path);
+		});
+	});
 
 	// load the local cache and then refresh
 	that.loadCache(that.updateCache);
 }
+
+Spool.objCompare = function(obj1, obj2) {
+	var equal = true;
+	if(typeof obj1==="object") {			
+		$.each(obj1, function(key, value) {
+			if(!obj2[key] || obj2[key]!==value) {
+				equal = false;
+				return false;
+			}
+		});
+	} else if(obj1!==obj2) {
+		equal = false;
+	}
+	return equal;
+};
 
 function supports_html5_storage() {
 	try { // to catch bug in older version of Firefox with cookies turned off

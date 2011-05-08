@@ -2,7 +2,10 @@
 	requires:
 		json2.js - https://github.com/douglascrockford/JSON-js
 		beautify.js - https://github.com/einars/js-beautify/blob/master/beautify.js
-		
+	
+	BUG:
+	- load up the editor so the storage is filled; refresh - all sorts of things go wrong when comparing content
+	
 	TO-DO:
 	- make the textarea a tiddler editor
 */
@@ -57,20 +60,6 @@ $(document).ready(function() {
 					$unsyncedListContainer.find('p').hide();
 				}
 			}
-		},
-		compare = function(obj1, obj2) {
-			var equal = true;
-			if(typeof obj1==="object") {			
-				$.each(obj1, function(key, value) {
-					if(!obj2[key] || obj2[key]!==value) {
-						equal = false;
-						return false;
-					}
-				});
-			} else if(obj1!==obj2) {
-				equal = false;
-			}
-			return equal;
 		};
 		
 	// clear the textarea in case it has remembered some text
@@ -161,16 +150,17 @@ $(document).ready(function() {
 			$.each(tiddlers, function(i, tiddler) {
 				item = {
 					path: "/bags/"+tiddler.bag+"/tiddlers/"+encodeURIComponent(tiddler.title),
-					data: JSON.stringify(tiddler)
+					data: tiddler
 				};
 				list.push(item);
 			});
 			return list;
 		},
-		compareItems: function(local, remote) {
-			var localTiddler = JSON.parse(local),
-				remoteTiddler = JSON.parse(remote),
-				matchFields = [
+		isNewer: function(local, remote) {
+			return local.modified > remote.modified;
+		},
+		compareContent: function(local, remote) {
+			var matchFields = [
 					'title',
 					'text',
 					'tags',
@@ -182,7 +172,7 @@ $(document).ready(function() {
 				],
 				equal = true;
 			$.each(matchFields, function(i, field) {
-				if(!compare(localTiddler[field],remoteTiddler[field])) {
+				if(!Spool.objCompare(local[field],remote[field])) {
 					equal = false;
 					return false;
 				}
