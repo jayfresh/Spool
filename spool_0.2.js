@@ -9,9 +9,6 @@ Requires:
 - jQuery - jquery.com (written with 1.4.1)
 - json2.js - https://github.com/douglascrockford/JSON-js
 
-BUG:
-- expressed in the example app.js
-
 TO-DO:
 - add syncFailed event
 
