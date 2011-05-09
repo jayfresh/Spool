@@ -49,13 +49,13 @@ function Spool(config) {
 		},
 		getStorage = function() {
 			var storage = {
-				save: function(path, data) {
+				save: function(path, data, synced) {
 					// TO-DO: handle exception when storage is exceeded
 					console.log('saving data',data);
 					var item = {
 						data: data,
 						meta: {
-							unsynced: true
+							unsynced: synced ? false : true
 						}
 					};
 					storage.storage[path] = JSON.stringify(item);
@@ -155,6 +155,7 @@ function Spool(config) {
 	};
 	that.updateCache = function() {
 		// TO-DO: work out how to accommodate requests for changes to the server data since a certain point (which might be specific to each implementation, but a sensible default could use something like eTags or cookies - perhaps it's a capability that could be determined by inspecting a server response
+		// TO-DO: if, after a full listing of resources from the server, there are local resources not in that list, check if they are unsynced - if they are, they need syncing; if not, something has gone wrong, throw an error
 		if(serverListPath) {
 			$(document).trigger(that.refreshingCacheEvent);
 			_ajax({
@@ -170,11 +171,12 @@ function Spool(config) {
 					$.each(list, function(i, item) {
 						path = item.path;
 						data = item.data;
-						localData = storage.get(path);
+						localData = storage.get(path),
+						localPath;
 						if(!localData) {
 							console.log('could not find local for '+path);
 							paths.push(path);
-							storage.save(path,data);
+							storage.save(path,data,true);
 						} else {
 							if(isNewer(localData,data)) {
 								// if the local content is different, that means it hasn't synced
@@ -191,7 +193,7 @@ function Spool(config) {
 								// TO-DO: what do I do with the new resource? sync it?
 								if(compareContent(localData,data)) {
 									paths.push(path);
-									storage.save(path.data);
+									storage.save(path,data);
 								} else {
 									if(storage.isUnsynced(path)) {
 										localPath = path+" (conflicted copy "+new Date()+")";

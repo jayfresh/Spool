@@ -3,11 +3,6 @@
 		json2.js - https://github.com/douglascrockford/JSON-js
 		beautify.js - https://github.com/einars/js-beautify/blob/master/beautify.js
 	
-	BUG:
-	- load up the editor so the storage is filled; refresh - all sorts of things go wrong when comparing content:
-	-- "saving data <undefined>"
-	-- new resources created without the "conflicted copy" marker - when they shouldn't be created at all
-	
 	TO-DO:
 	- make the textarea a tiddler editor
 */
@@ -33,14 +28,15 @@ $(document).ready(function() {
 			$('button').data('href',href);
 		},
 		updateResourceList = function(paths, clear) {
-			var listItems = [];
+			var listItems = [],
+				$resourceList = $('#resourceList');
 			$.each(paths, function(i, path) {
 				listItems.push('<li><a href="'+path+'">'+decodeURIComponent(path)+'</a></li>');
 			});
 			if(clear) {
-				$('#resourceList').html("");
+				$resourceList.html("");
 			}
-			$('#resourceList').append(listItems.join("\n"));
+			$resourceList.append(listItems.join("\n"));
 		},
 		$unsyncedListContainer = $('#unsyncedListContainer'),
 		$unsyncedList = $('#unsyncedList'),
@@ -78,7 +74,7 @@ $(document).ready(function() {
 		
 	$(document).bind('SpoolCacheUpdated', function(e, paths) {
 		updateStatus("Cache updated with "+paths.length+" new resources");
-		updateResourceList(paths);
+		updateResourceList(paths,true);
 	});
 
 	$(document).bind("SpoolResourceSaved", function(e, paths) { // assuming this is only called with one resource, which it is at the moment
