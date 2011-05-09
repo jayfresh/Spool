@@ -86,6 +86,10 @@ $(document).ready(function() {
 		updateStatus("Synced "+paths[0]+" to the web");
 		updateUnsyncedList(paths, true);
 	});
+	
+	$(document).bind("SpoolResourceSyncFail", function(e, paths) {
+		updateStatus("Sync to "+paths[0]+" failed");
+	});
 
 	$('a').live('click', function(e) {
 		e.preventDefault();

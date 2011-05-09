@@ -40,6 +40,7 @@ All event are triggered on the document.
 3. when cache is updated, with local or remote, "SpoolCacheUpdated"
 4. when a resource is saved to the local storage, "SpoolResourceSaved"
 5. when a resource is synced to the remote storage, "SpoolResourceSynced"
+6. if a resource sync fails, "SpoolResourceSyncFail"
 
 Demo app (spool_client/static/index.html):
 Effectively, a resource editor that sync's with a remote server.

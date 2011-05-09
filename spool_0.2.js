@@ -214,6 +214,7 @@ function Spool(config) {
 	that.updatedCacheEvent = "SpoolCacheUpdated";
 	that.savedResourceEvent = "SpoolResourceSaved";
 	that.syncedResourceEvent = "SpoolResourceSynced";
+	that.syncedResourceFailedEvent = "SpoolResourceSyncFail";
 	window.storage = storage; // JRL: debug
 	$.ajax = function(options) {
 		var url = options.url,
@@ -274,6 +275,7 @@ function Spool(config) {
 	$(document).bind(that.savedResourceEvent, function(e, paths, options) {
 		var syncFail = function() {
 			console.log('failed to sync on save', arguments);
+			$(document).trigger(that.syncedResourceFailedEvent, [paths]);
 		};
 		$.each(paths, function(i, path) {
 			console.log('syncing '+path);
