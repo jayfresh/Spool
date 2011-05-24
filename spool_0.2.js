@@ -10,7 +10,7 @@ Requires:
 - json2.js - https://github.com/douglascrockford/JSON-js
 
 TO-DO:
-- add syncFailed event
+- add syncFailed event - is this done?
 
 */
 
@@ -273,7 +273,7 @@ function Spool(config) {
 	}
 	
 	$(document).bind(that.savedResourceEvent, function(e, paths, options) {
-		var syncFail = function() {
+		var syncFail = function() { // BUG: why is this being called twice when PUTing fails (the 2nd time without any arguments)? And also, when there is a successful PUT, there is a call to syncFail with no arguments
 			console.log('failed to sync on save', arguments);
 			$(document).trigger(that.syncedResourceFailedEvent, [paths]);
 		};
@@ -284,18 +284,24 @@ function Spool(config) {
 				type: 'put',
 				contentType: 'application/json',
 				success: function(data, status, xhr) {
+					if(status!=="success") {
+						return false;
+					}
 					var statuses = [204];
 					if(xhr && $.inArray(xhr.status, statuses)!==-1) {
 						console.log('successful sync',arguments);
 						$(document).trigger(that.syncedResourceEvent, [[path]]);
 					} else {
+						console.log('calling syncFail in success handler');
 						syncFail.apply(this,arguments);
 					}
 				},
 				error: function() {
+					console.log('calling syncFail in error handler');
 					syncFail.apply(this,arguments);
 				}
 			});
+			console.log('calling _ajax with options',options);
 			_ajax(options);
 		});
 	});

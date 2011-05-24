@@ -68,6 +68,10 @@ button:hover {
 	padding-left: 20px;
 }
 
+#sync {
+	margin: 3px 0 0 3px;
+}
+
 #resourceListContainer {
 	height: 300px;
 	margin-top: 1em;

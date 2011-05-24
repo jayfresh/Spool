@@ -3,8 +3,15 @@
 		json2.js - https://github.com/douglascrockford/JSON-js
 		beautify.js - https://github.com/einars/js-beautify/blob/master/beautify.js
 	
+	BUG:
+	- I'm getting a conflict even when I edit a resource offline, go back online, save it successfully and then refresh - what should really happen is that the online resource gets merged in to the local
+	
 	TO-DO:
-	- make the textarea a tiddler editor
+	- clicking a link in the unsynced resource area should load that resource into the editor
+	- on a successful sync, the resource view should be refreshed (or at least show the new resource)
+	- if the same resource is edited while offline more than once, it's name appears multiple times in the unsynced list - it should only appear once
+	- er... turning off the wifi and then syncing (spool.updateCache) still returns 200 and data - is that because of the normal browser cache
+	- calling that.updateCache should probably end up PUTing resources if the GET was successful
 */
 
 $(document).ready(function() {
@@ -15,15 +22,18 @@ $(document).ready(function() {
 		updateStatus = function(message) {
 			$statusBar.text(message);
 		},
-		$resourceArea = $('textarea'),
+		$resourceArea = $('#text'),
+		$title = $('#title'),
 		getResourceArea = function() {
 			return $resourceArea.val();
 		},
 		updateResourceArea = function(data,href) {
+			var title = data.title;
 			if(typeof data==="object") {
 				data = JSON.stringify(data);
 			}
 			data = js_beautify(data);
+			$title.val(title);
 			$resourceArea.val(data);
 			$('button').data('href',href);
 		},
@@ -61,7 +71,8 @@ $(document).ready(function() {
 		};
 		
 	// clear the textarea in case it has remembered some text
-	$('textarea').val('');
+	$('#title').val('');
+	$('#text').val('');
 	
 	$(document).bind("SpoolCacheLoaded", function(e, paths) {
 		updateStatus("Cache loaded with "+paths.length+" resources");
@@ -105,14 +116,16 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$('button').click(function(e) {
-		var url = $(this).data('href');
+	$('#save').click(function(e) {
+		var url = $(this).data('href'),
+			title = $('#title').val();
 		if(!url) {
-			return;
+			return false; // this does mean that you need to have opened a resource and changed its title to save new resources
 		}
+		url = url.substring(0,url.lastIndexOf('/')+1)+title;
 		e.preventDefault();
 		$.ajax({
-			url: $(this).data('href'),
+			url: url,
 			type: 'put',
 			data: getResourceArea(),
 			processData: false,
@@ -123,6 +136,13 @@ $(document).ready(function() {
 				console.log('failure', arguments);
 			}
 		});
+		return false;
+	});
+	
+	$('#sync').click(function(e) {
+		if(spool) {
+			spool.updateCache();
+		}
 		return false;
 	});
 	

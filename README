@@ -8,7 +8,8 @@ Aims:
 - a drop-in library that allows your existing JS to continue to work (jQuery only? or wrappers?)
 - essentially: DropBox for AJAX
 - when GETing, everything comes from the cache
-- when POST/PUTing, everything is POST/PUT to the cache and that then syncs
+- when PUTing, everything is PUT to the cache and that then syncs
+- when POSTing, the cache is bypassed, since so many apps depend on an immediate response from a POST
 - any changes in the remote data storage are synced to the cache whenever possible
 - if there are conflicts between local data and remote data, we'll handle that in some way (Tony Garnock-Jones' JS diff'ing implementation comes to mind)
 - to be used for a set of data you can list, so it's like a folder, not for all AJAX requests
@@ -46,3 +47,13 @@ Demo app (spool_client/static/index.html):
 Effectively, a resource editor that sync's with a remote server.
 
 This spool_client folder contains the files you need to run the example, which expects to run on TiddlyWeb (http://tiddlyweb.com). The demo will work fine from a file URI, although writing requires you to point it at a server you can modify.
+
+An awesome demo would be:
+1. You load up the app, and the cache is refreshed, showing you a bunch of resources. You edit a resource and the change propagates to the server. Then you disconnect the wifi/ethernet, make a bunch of changes, which you see stack up in an unsynced changes pool, and then connect back to the wifi/ethernet, at which point you hit a sync button to get things back in sync.
+2. As above, except that while you are offline, some new resources are created, which you download and get a notification about when you connect again.
+3. As above, except that while you are offline, the same resources you are editing are edited; when you reconnect, the conflict is pointed out, a local conflicted copy is kept for you to delete eventually, and you can fix the conflict and resync.
+
+Drop-in demo's:
+1. Add to a TiddlyWiki, go through steps 1-3 above. Have some little spool viewer that shows you the state of things.
+2. Add to an app speaking to CouchDB or MongoDB - perhaps have the app run on node.js. Go through steps 1-3 above.
+3. Add to a real-time app. Go through steps 1-3 above.

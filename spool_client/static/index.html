@@ -12,12 +12,16 @@
 	<body>
 		<div id="wrapper" class="jbasewrap">
 			<div class="grid12col">
-				<h1>SPOOL demo - "resources that sync"</h1>
+				<h1>SPOOL demo - "resources that sync / DropBox for AJAX"</h1>
 				<div id="statusBar"></div>
 				<div class="grid4col marginright left">
 					<h2>Resources</h2>
 					<div id="unsyncedListContainer">
-						<h3>Unsynced resources</h3>
+						<div>
+							<h3 class="left">Unsynced resources</h3>
+							<button class="left" id="sync">sync</button>
+						</div>
+						<br class="clearboth" />
 						<p>no items</p>
 						<ul id="unsyncedList">
 						</ul>
@@ -28,8 +32,15 @@
 					</div>
 				</div>
 				<div class="grid8col left">
-					<textarea>Selected resource will load here...</textarea>
-					<button class="right">save changes</button>
+					<div class="grid8col">
+						<label class="grid1col marginright" for="title">Title:</label>
+						<input class="grid7col" type="text" name="title" id="title" />
+					</div>
+					<div class="grid8col">
+						<label for="text">JSON:</label>
+						<textarea name="text" id="text">Selected resource will load here...</textarea>
+						<button id="save" class="right">save changes</button>
+					</div>
 				</div>
 				<br class="clearboth" />
 			</div>
